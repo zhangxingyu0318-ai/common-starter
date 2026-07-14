@@ -5,26 +5,20 @@ import org.springframework.context.annotation.ComponentScan;
 
 /**
  * Common Platform Auto Configuration
- * 自动配置所有通用模块和AI模块的功能
+ * 自动配置当前可用的公共基础模块。
  */
 @AutoConfiguration
 @ComponentScan(basePackages = {
-    "com.zxy.core",
-    "com.zxy.ai.data",
-    "com.zxy.ai.model",
-    "com.zxy.ai.training"
+    "com.zxy.core"
 })
 public class AiPlatformAutoConfiguration {
 
     /**
      * Common Platform Starter
-     * 引入此依赖即可获得完整的Spring Boot + AI平台功能
+     * 引入此配置可获得当前公共基础功能。
      *
      * 包含功能：
-     * - 通用工具 (common-core)
-     * - 数据处理 (ai-data)
-     * - 模型管理 (ai-model)
-     * - 训练功能 (ai-training)
+     * - 通用工具 (ai-common-core)
      */
 }
 

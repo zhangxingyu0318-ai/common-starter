@@ -1,0 +1,35 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ai-module-auth
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+zxy:
+  security:
+    enabled: true
+    secret: change-this-demo-secret-to-a-long-32-byte-minimum-key
+    issuer: common-starter
+    access-token-ttl: 30m
+    refresh-token-ttl: 7d
+    exclude-paths:
+      - /actuator/**
+      - /api/auth/login
+      - /api/auth/refresh
+      - /error
+

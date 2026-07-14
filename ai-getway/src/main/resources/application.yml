@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ai-getway
+  main:
+    web-application-type: reactive
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: auth-service
+          uri: lb://ai-module-auth
+          predicates:
+            - Path=/api/auth/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+
+zxy:
+  security:
+    enabled: true
+    secret: change-this-demo-secret-to-a-long-32-byte-minimum-key
+    issuer: common-starter
+    access-token-ttl: 30m
+    refresh-token-ttl: 7d
+    exclude-paths:
+      - /actuator/**
+      - /api/auth/login
+      - /api/auth/refresh
+      - /api/auth/validate
+      - /error
+
