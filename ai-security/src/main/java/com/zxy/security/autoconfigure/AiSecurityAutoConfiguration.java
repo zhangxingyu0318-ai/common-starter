@@ -5,12 +5,15 @@ import com.zxy.security.blacklist.NoopTokenBlacklistChecker;
 import com.zxy.security.blacklist.RedisTokenBlacklistChecker;
 import com.zxy.security.blacklist.TokenBlacklistChecker;
 import com.zxy.security.config.AuthTokenProperties;
+import com.zxy.security.csrf.CsrfTokenService;
 import com.zxy.security.jwt.DefaultJwtTokenService;
 import com.zxy.security.jwt.JwtTokenService;
 import com.zxy.security.token.TokenResolver;
 import com.zxy.security.validation.TokenValidationService;
 import com.zxy.security.web.SecurityUserHeaderWriter;
-import com.zxy.security.web.ServletTokenValidationFilter;
+import com.zxy.security.web.BearerTokenAuthenticationFilter;
+import com.zxy.security.web.BrowserCookieAuthenticationFilter;
+import com.zxy.security.web.AuthenticationCookieService;
 import com.zxy.security.webflux.ReactiveTokenValidationFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -57,6 +60,19 @@ public class AiSecurityAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(CsrfTokenService.class)
+    public CsrfTokenService csrfTokenService(AuthTokenProperties properties) {
+        return new CsrfTokenService(properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(AuthenticationCookieService.class)
+    public AuthenticationCookieService authenticationCookieService(AuthTokenProperties properties,
+                                                                   CsrfTokenService csrfTokenService) {
+        return new AuthenticationCookieService(properties, csrfTokenService);
+    }
+
+    @Bean
     @ConditionalOnMissingBean(TokenValidationService.class)
     public TokenValidationService tokenValidationService(JwtTokenService jwtTokenService,
                                                          TokenBlacklistChecker tokenBlacklistChecker) {
@@ -78,15 +94,15 @@ public class AiSecurityAutoConfiguration {
     @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
     @ConditionalOnClass(OncePerRequestFilter.class)
-    @ConditionalOnMissingBean(name = "servletTokenValidationFilterRegistration")
-    public FilterRegistrationBean<ServletTokenValidationFilter> servletTokenValidationFilterRegistration(
+    @ConditionalOnMissingBean(name = "bearerTokenAuthenticationFilterRegistration")
+    public FilterRegistrationBean<BearerTokenAuthenticationFilter> bearerTokenAuthenticationFilterRegistration(
             AuthTokenProperties properties,
             TokenValidationService tokenValidationService,
             TokenResolver tokenResolver,
             SecurityUserHeaderWriter securityUserHeaderWriter,
             ObjectMapper objectMapper) {
-        FilterRegistrationBean<ServletTokenValidationFilter> registrationBean = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new ServletTokenValidationFilter(
+        FilterRegistrationBean<BearerTokenAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new BearerTokenAuthenticationFilter(
                 properties,
                 tokenValidationService,
                 tokenResolver,
@@ -99,18 +115,45 @@ public class AiSecurityAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    @ConditionalOnClass(OncePerRequestFilter.class)
+    @ConditionalOnMissingBean(name = "browserCookieAuthenticationFilterRegistration")
+    public FilterRegistrationBean<BrowserCookieAuthenticationFilter> browserCookieAuthenticationFilterRegistration(
+            AuthTokenProperties properties,
+            TokenValidationService tokenValidationService,
+            TokenResolver tokenResolver,
+            CsrfTokenService csrfTokenService,
+            SecurityUserHeaderWriter securityUserHeaderWriter,
+            ObjectMapper objectMapper) {
+        FilterRegistrationBean<BrowserCookieAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new BrowserCookieAuthenticationFilter(
+                properties,
+                tokenValidationService,
+                tokenResolver,
+                csrfTokenService,
+                securityUserHeaderWriter,
+                objectMapper
+        ));
+        registrationBean.setOrder(Ordered.HIGHEST_PRECEDENCE + 21);
+        registrationBean.addUrlPatterns("/*");
+        return registrationBean;
+    }
+
+    @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
     @ConditionalOnClass(WebFilter.class)
     @ConditionalOnMissingBean(name = "reactiveTokenValidationFilter")
     public WebFilter reactiveTokenValidationFilter(AuthTokenProperties properties,
                                                    TokenValidationService tokenValidationService,
                                                    TokenResolver tokenResolver,
+                                                   CsrfTokenService csrfTokenService,
                                                    SecurityUserHeaderWriter securityUserHeaderWriter,
                                                    ObjectMapper objectMapper) {
         return new ReactiveTokenValidationFilter(
                 properties,
                 tokenValidationService,
                 tokenResolver,
+                csrfTokenService,
                 securityUserHeaderWriter,
                 objectMapper
         );

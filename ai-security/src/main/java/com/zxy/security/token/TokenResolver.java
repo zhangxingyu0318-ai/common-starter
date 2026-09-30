@@ -12,14 +12,23 @@ public class TokenResolver {
     }
 
     public String resolve(String headerValue) {
+        return hasBearerToken(headerValue) ? resolveBearerToken(headerValue) : null;
+    }
+
+    public boolean hasBearerToken(String headerValue) {
+        return StringUtils.hasText(headerValue)
+                && headerValue.regionMatches(true, 0, properties.getTokenPrefix() + " ", 0,
+                properties.getTokenPrefix().length() + 1)
+                && StringUtils.hasText(resolveBearerToken(headerValue));
+    }
+
+    public String resolveBearerToken(String headerValue) {
         if (!StringUtils.hasText(headerValue)) {
             return null;
         }
         String prefix = properties.getTokenPrefix() + " ";
-        if (headerValue.startsWith(prefix)) {
-            return headerValue.substring(prefix.length());
-        }
-        return headerValue;
+        return headerValue.regionMatches(true, 0, prefix, 0, prefix.length())
+                ? headerValue.substring(prefix.length()).trim() : null;
     }
 }
 

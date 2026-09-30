@@ -148,6 +148,8 @@ ai-common-core ──┐
 在根目录执行：
 
 ```powershell
+$env:JAVA_HOME = 'D:\work\jdk\jdk-21.0.8'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
 mvn clean verify
 ```
 
@@ -185,6 +187,29 @@ Client ── Authorization: Bearer <JWT> ──► ai-getway
 
 Client ── POST /api/auth/logout ──► ai-module-auth ──► Redis 黑名单
 ```
+
+## 6.1 Dual-client authentication details
+
+`ai-security` now supports two mutually exclusive request modes:
+
+- **Mobile/API**: use `Authorization: Bearer <access-token>`. A valid Bearer token takes precedence over cookies and does not require CSRF validation.
+- **Browser**: send `X-Auth-Client: browser` when logging in. The auth service returns HttpOnly access/refresh JWT cookies and a readable `XSRF-TOKEN` cookie. For unsafe methods (`POST`, `PUT`, `PATCH`, `DELETE`), the browser must send the same token in `X-CSRF-TOKEN`.
+
+The CSRF value is stateless: `base64url(uuid.timestamp).base64url(hmac)`. The first part is an intentionally readable payload and the second part is an HMAC-SHA-256 signature. It is not an identity credential; the JWT remains HttpOnly. Validation checks cookie/header equality in constant time, HMAC integrity, UUID format, issuance time, and expiry.
+
+`ai-module-auth` keeps login as an API rather than a form-login page. Its login service delegates username/password authentication to Spring Security's `AuthenticationManager`, `DaoAuthenticationProvider`, `UserDetailsService`, and `PasswordEncoder`; JWT issuance remains separate. The existing `DemoUserDetailsService` is a temporary account source. Database, SMS, WeChat, and Alipay flows should be added as dedicated `AuthenticationProvider` implementations (or by replacing the user-details source) without changing the JWT/blacklist pipeline.
+
+For browser refresh, CSRF is also verified in the auth service because the route is intentionally public to the gateway. Logout blacklists valid tokens in Redis and clears browser cookies. Mobile login/refresh still returns Bearer tokens in the JSON body; browser JWT values are omitted from that body.
+
+## 6.2 Security configuration requirements
+
+All services and the gateway must use the same JWT `secret`, issuer, and Redis blacklist namespace. If `csrf-secret` is configured separately, it must also have the same value wherever CSRF is validated.
+
+Set `zxy.security.cookie-secure: true` in every HTTPS production environment. For a cross-site frontend, use `cookie-same-site: None` **and** `cookie-secure: true`, and configure exact frontend hosts in `allowed-origins`; never use `*` with credentialed CORS.
+
+## 6.3 Request-context boundary
+
+After servlet authentication succeeds, `AuthenticationTokenContext` contains `AuthenticatedToken(token, user)` for the current request only and is cleared in a `finally` block. It is safe only for synchronous servlet-request code. WebFlux/Gateway deliberately does not use `ThreadLocal`; it remains non-blocking and propagates authenticated user headers through the reactive request chain.
 
 ## 7. 后续目标（未实现）
 

@@ -11,45 +11,47 @@ import com.zxy.security.model.SecurityUser;
 import com.zxy.security.model.TokenValidationResult;
 import com.zxy.security.validation.TokenValidationService;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AuthService {
 
     private final JwtTokenService jwtTokenService;
-    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
     private final StringRedisTemplate redisTemplate;
     private final AuthTokenProperties properties;
     private final TokenValidationService tokenValidationService;
-    private final Map<String, DemoUserAccount> accounts = new ConcurrentHashMap<>();
 
     public AuthService(JwtTokenService jwtTokenService,
-                       PasswordEncoder passwordEncoder,
+                       AuthenticationManager authenticationManager,
                        StringRedisTemplate redisTemplate,
                        AuthTokenProperties properties,
                        TokenValidationService tokenValidationService) {
         this.jwtTokenService = jwtTokenService;
-        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
         this.redisTemplate = redisTemplate;
         this.properties = properties;
         this.tokenValidationService = tokenValidationService;
-        initDemoUsers();
     }
 
     public TokenResponse login(LoginRequest request) {
-        DemoUserAccount account = accounts.get(request.username());
-        if (account == null || !passwordEncoder.matches(request.password(), account.passwordHash())) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    UsernamePasswordAuthenticationToken.unauthenticated(request.username(), request.password()));
+            AuthUserPrincipal principal = (AuthUserPrincipal) authentication.getPrincipal();
+            return issueTokens(principal.securityUser());
+        } catch (AuthenticationException | ClassCastException ex) {
             throw new BusinessException("401", "用户名或密码错误");
         }
-        return issueTokens(account.user());
     }
 
     public TokenResponse refresh(String refreshToken) {
@@ -130,17 +132,5 @@ public class AuthService {
         }
     }
 
-    private void initDemoUsers() {
-        register("1001", "admin", "admin123", "平台管理员", List.of("ADMIN", "USER"));
-        register("1002", "analyst", "123456", "数据分析师", List.of("USER"));
-    }
-
-    private void register(String userId, String username, String rawPassword, String displayName, List<String> roles) {
-        SecurityUser user = new SecurityUser(userId, username, displayName, roles);
-        accounts.put(username, new DemoUserAccount(user, passwordEncoder.encode(rawPassword)));
-    }
-
-    private record DemoUserAccount(SecurityUser user, String passwordHash) {
-    }
 }
 
