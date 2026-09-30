@@ -50,7 +50,7 @@ public class CsrfTokenService {
             UUID.fromString(payloadParts[0]);
             long issuedAt = Long.parseLong(payloadParts[1]);
             long now = Instant.now().getEpochSecond();
-            return issuedAt <= now && now - issuedAt <= properties.getCsrfTokenTtl().toSeconds();
+            return issuedAt <= now && now - issuedAt <= properties.getCsrf().getTokenTtl().toSeconds();
         } catch (IllegalArgumentException ex) {
             return false;
         }
@@ -59,8 +59,8 @@ public class CsrfTokenService {
     private byte[] sign(String payload) {
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-            String secret = StringUtils.hasText(properties.getCsrfSecret())
-                    ? properties.getCsrfSecret() : properties.getSecret();
+            String secret = StringUtils.hasText(properties.getCsrf().getSecret())
+                    ? properties.getCsrf().getSecret() : properties.getAuth().getSecret();
             mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
             return mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
         } catch (Exception ex) {
@@ -80,4 +80,6 @@ public class CsrfTokenService {
         return new String(Base64.getUrlDecoder().decode(value), StandardCharsets.UTF_8);
     }
 }
+
+
 

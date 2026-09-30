@@ -29,17 +29,17 @@ public class DefaultJwtTokenService implements JwtTokenService {
 
     public DefaultJwtTokenService(AuthTokenProperties properties) {
         this.properties = properties;
-        this.secretKey = Keys.hmacShaKeyFor(properties.getSecret().getBytes(StandardCharsets.UTF_8));
+        this.secretKey = Keys.hmacShaKeyFor(properties.getAuth().getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
     public String generateAccessToken(SecurityUser user) {
-        return generateToken(user, TOKEN_TYPE_ACCESS, properties.getAccessTokenTtl().toSeconds());
+        return generateToken(user, TOKEN_TYPE_ACCESS, properties.getAuth().getAccessTokenTtl().toSeconds());
     }
 
     @Override
     public String generateRefreshToken(SecurityUser user) {
-        return generateToken(user, TOKEN_TYPE_REFRESH, properties.getRefreshTokenTtl().toSeconds());
+        return generateToken(user, TOKEN_TYPE_REFRESH, properties.getAuth().getRefreshTokenTtl().toSeconds());
     }
 
     @Override
@@ -74,7 +74,7 @@ public class DefaultJwtTokenService implements JwtTokenService {
     private String generateToken(SecurityUser user, String tokenType, long ttlSeconds) {
         Instant now = Instant.now();
         return Jwts.builder()
-                .issuer(properties.getIssuer())
+                .issuer(properties.getAuth().getIssuer())
                 .subject(user.userId())
                 .claim(CLAIM_USERNAME, user.username())
                 .claim(CLAIM_DISPLAY_NAME, user.displayName())
@@ -105,7 +105,7 @@ public class DefaultJwtTokenService implements JwtTokenService {
         try {
             return Jwts.parser()
                     .verifyWith(secretKey)
-                    .requireIssuer(properties.getIssuer())
+                    .requireIssuer(properties.getAuth().getIssuer())
                     .build()
                     .parseSignedClaims(token);
         } catch (JwtException | IllegalArgumentException ex) {

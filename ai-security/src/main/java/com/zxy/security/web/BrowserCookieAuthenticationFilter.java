@@ -11,10 +11,12 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.util.StringUtils;
+import org.springframework.util.AntPathMatcher;
 
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 /** Authenticates browser requests with an HttpOnly JWT cookie and HMAC-protected CSRF token. */
@@ -24,6 +26,7 @@ public class BrowserCookieAuthenticationFilter extends AbstractServletAuthentica
 
     private final CsrfTokenService csrfTokenService;
     private final TokenResolver tokenResolver;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     public BrowserCookieAuthenticationFilter(AuthTokenProperties properties,
                                              TokenValidationService tokenValidationService,
@@ -39,18 +42,19 @@ public class BrowserCookieAuthenticationFilter extends AbstractServletAuthentica
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return super.shouldNotFilter(request)
-                || tokenResolver.hasBearerToken(request.getHeader(properties.getHeaderName()));
+                || tokenResolver.hasBearerToken(request.getHeader(properties.getAuth().getHeaderName()));
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = readCookie(request, properties.getAccessTokenCookieName());
+        String accessToken = readCookie(request, properties.getCookie().getAccessTokenName());
         if (!StringUtils.hasText(accessToken)) {
             authenticate(accessToken, request, response, filterChain);
             return;
         }
-        if (!SAFE_METHODS.contains(request.getMethod()) && !hasValidCsrfToken(request)) {
+        if (!SAFE_METHODS.contains(request.getMethod()) && !isCsrfWhitelisted(request.getRequestURI())
+                && !hasValidCsrfToken(request)) {
             writeError(response, HttpServletResponse.SC_FORBIDDEN, "CSRF 令牌无效或已过期");
             return;
         }
@@ -58,13 +62,18 @@ public class BrowserCookieAuthenticationFilter extends AbstractServletAuthentica
     }
 
     private boolean hasValidCsrfToken(HttpServletRequest request) {
-        String cookieToken = readCookie(request, properties.getCsrfCookieName());
-        String headerToken = request.getHeader(properties.getCsrfHeaderName());
+        String cookieToken = readCookie(request, properties.getCsrf().getCookieName());
+        String headerToken = request.getHeader(properties.getCsrf().getHeaderName());
         return StringUtils.hasText(cookieToken)
                 && StringUtils.hasText(headerToken)
                 && MessageDigest.isEqual(cookieToken.getBytes(java.nio.charset.StandardCharsets.UTF_8),
                 headerToken.getBytes(java.nio.charset.StandardCharsets.UTF_8))
                 && csrfTokenService.isValid(headerToken);
+    }
+
+    private boolean isCsrfWhitelisted(String path) {
+        List<String> whitelist = properties.getCsrf().getWhitelist();
+        return whitelist != null && whitelist.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
     private String readCookie(HttpServletRequest request, String name) {
@@ -79,6 +88,8 @@ public class BrowserCookieAuthenticationFilter extends AbstractServletAuthentica
                 .orElse(null);
     }
 }
+
+
 
 
 

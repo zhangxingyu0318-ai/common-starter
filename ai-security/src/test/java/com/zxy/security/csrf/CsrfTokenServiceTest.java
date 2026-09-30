@@ -19,7 +19,7 @@ class CsrfTokenServiceTest {
     @Test
     void shouldRejectTamperedOrExpiredToken() {
         AuthTokenProperties properties = new AuthTokenProperties();
-        properties.setCsrfTokenTtl(Duration.ofSeconds(-1));
+        properties.getCsrf().setTokenTtl(Duration.ofSeconds(-1));
         CsrfTokenService service = new CsrfTokenService(properties);
         String token = service.generateToken();
 
@@ -27,5 +27,6 @@ class CsrfTokenServiceTest {
         assertFalse(service.isValid(token));
     }
 }
+
 
 

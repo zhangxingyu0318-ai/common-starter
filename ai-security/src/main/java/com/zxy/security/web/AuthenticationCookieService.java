@@ -21,15 +21,15 @@ public class AuthenticationCookieService {
     }
 
     public void writeLoginCookies(HttpServletResponse response, String accessToken, String refreshToken) {
-        add(response, properties.getAccessTokenCookieName(), accessToken, properties.getAccessTokenTtl(), true);
-        add(response, properties.getRefreshTokenCookieName(), refreshToken, properties.getRefreshTokenTtl(), true);
-        add(response, properties.getCsrfCookieName(), csrfTokenService.generateToken(), properties.getCsrfTokenTtl(), false);
+        add(response, properties.getCookie().getAccessTokenName(), accessToken, properties.getAuth().getAccessTokenTtl(), true);
+        add(response, properties.getCookie().getRefreshTokenName(), refreshToken, properties.getAuth().getRefreshTokenTtl(), true);
+        add(response, properties.getCsrf().getCookieName(), csrfTokenService.generateToken(), properties.getCsrf().getTokenTtl(), false);
     }
 
     public void clearLoginCookies(HttpServletResponse response) {
-        clear(response, properties.getAccessTokenCookieName(), true);
-        clear(response, properties.getRefreshTokenCookieName(), true);
-        clear(response, properties.getCsrfCookieName(), false);
+        clear(response, properties.getCookie().getAccessTokenName(), true);
+        clear(response, properties.getCookie().getRefreshTokenName(), true);
+        clear(response, properties.getCsrf().getCookieName(), false);
     }
 
     public String readCookie(HttpServletRequest request, String name) {
@@ -43,14 +43,16 @@ public class AuthenticationCookieService {
 
     private void add(HttpServletResponse response, String name, String value, java.time.Duration ttl, boolean httpOnly) {
         response.addHeader("Set-Cookie", ResponseCookie.from(name, value)
-                .httpOnly(httpOnly).secure(properties.isCookieSecure()).path(properties.getCookiePath())
-                .sameSite(properties.getCookieSameSite()).maxAge(ttl).build().toString());
+                .httpOnly(httpOnly).secure(properties.getCookie().isSecure()).path(properties.getCookie().getPath())
+                .sameSite(properties.getCookie().getSameSite()).maxAge(ttl).build().toString());
     }
 
     private void clear(HttpServletResponse response, String name, boolean httpOnly) {
         response.addHeader("Set-Cookie", ResponseCookie.from(name, "")
-                .httpOnly(httpOnly).secure(properties.isCookieSecure()).path(properties.getCookiePath())
-                .sameSite(properties.getCookieSameSite()).maxAge(java.time.Duration.ZERO).build().toString());
+                .httpOnly(httpOnly).secure(properties.getCookie().isSecure()).path(properties.getCookie().getPath())
+                .sameSite(properties.getCookie().getSameSite()).maxAge(java.time.Duration.ZERO).build().toString());
     }
 }
+
+
 

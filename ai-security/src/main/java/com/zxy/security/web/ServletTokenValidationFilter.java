@@ -41,10 +41,10 @@ public class ServletTokenValidationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        if (!properties.isEnabled()) {
+        if (!properties.getAuth().isEnabled()) {
             return true;
         }
-        List<String> excludePaths = properties.getExcludePaths();
+        List<String> excludePaths = properties.getAuth().getWhitelist();
         String path = request.getRequestURI();
         return excludePaths != null && excludePaths.stream().anyMatch(pattern -> antPathMatcher.match(pattern, path));
     }
@@ -53,7 +53,7 @@ public class ServletTokenValidationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String headerValue = request.getHeader(properties.getHeaderName());
+        String headerValue = request.getHeader(properties.getAuth().getHeaderName());
         String token = tokenResolver.resolve(headerValue);
         TokenValidationResult validationResult = tokenValidationService.validateAccessToken(token);
         if (!validationResult.valid()) {

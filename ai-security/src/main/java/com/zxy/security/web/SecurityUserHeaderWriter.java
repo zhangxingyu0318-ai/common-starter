@@ -22,19 +22,19 @@ public class SecurityUserHeaderWriter {
 
     public ServerHttpRequest write(ServerHttpRequest request, SecurityUser user) {
         return request.mutate()
-                .header(properties.getUserIdHeader(), defaultValue(user.userId()))
-                .header(properties.getUsernameHeader(), defaultValue(user.username()))
-                .header(properties.getDisplayNameHeader(), defaultValue(user.displayName()))
-                .header(properties.getRolesHeader(), String.join(",", user.roles()))
+                .header(properties.getIdentityHeaders().getUserId(), defaultValue(user.userId()))
+                .header(properties.getIdentityHeaders().getUsername(), defaultValue(user.username()))
+                .header(properties.getIdentityHeaders().getDisplayName(), defaultValue(user.displayName()))
+                .header(properties.getIdentityHeaders().getRoles(), String.join(",", user.roles()))
                 .build();
     }
 
     public HttpServletRequest write(HttpServletRequest request, SecurityUser user) {
         Map<String, String> headers = new LinkedHashMap<>();
-        headers.put(properties.getUserIdHeader(), defaultValue(user.userId()));
-        headers.put(properties.getUsernameHeader(), defaultValue(user.username()));
-        headers.put(properties.getDisplayNameHeader(), defaultValue(user.displayName()));
-        headers.put(properties.getRolesHeader(), String.join(",", user.roles()));
+        headers.put(properties.getIdentityHeaders().getUserId(), defaultValue(user.userId()));
+        headers.put(properties.getIdentityHeaders().getUsername(), defaultValue(user.username()));
+        headers.put(properties.getIdentityHeaders().getDisplayName(), defaultValue(user.displayName()));
+        headers.put(properties.getIdentityHeaders().getRoles(), String.join(",", user.roles()));
         return new MutableHeaderHttpServletRequest(request, headers);
     }
 

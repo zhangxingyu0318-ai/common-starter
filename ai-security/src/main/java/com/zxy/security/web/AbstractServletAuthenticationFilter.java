@@ -40,11 +40,11 @@ abstract class AbstractServletAuthenticationFilter extends OncePerRequestFilter 
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !properties.isEnabled() || isExcluded(request.getRequestURI());
+        return !properties.getAuth().isEnabled() || isExcluded(request.getRequestURI());
     }
 
     protected boolean isExcluded(String path) {
-        List<String> excludePaths = properties.getExcludePaths();
+        List<String> excludePaths = properties.getAuth().getWhitelist();
         return excludePaths != null && excludePaths.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
@@ -76,4 +76,5 @@ abstract class AbstractServletAuthenticationFilter extends OncePerRequestFilter 
         objectMapper.writeValue(response.getWriter(), Result.fail(String.valueOf(status), normalized, normalized));
     }
 }
+
 

@@ -54,15 +54,16 @@ public class ReactiveTokenValidationFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        if (!properties.isEnabled() || isExcluded(exchange.getRequest().getPath().value())) {
+        if (!properties.getAuth().isEnabled() || isExcluded(exchange.getRequest().getPath().value())) {
             return chain.filter(exchange);
         }
-        String headerValue = exchange.getRequest().getHeaders().getFirst(properties.getHeaderName());
+        String headerValue = exchange.getRequest().getHeaders().getFirst(properties.getAuth().getHeaderName());
         String token = tokenResolver.hasBearerToken(headerValue)
                 ? tokenResolver.resolveBearerToken(headerValue)
-                : cookieValue(exchange, properties.getAccessTokenCookieName());
+                : cookieValue(exchange, properties.getCookie().getAccessTokenName());
         if (!tokenResolver.hasBearerToken(headerValue) && StringUtils.hasText(token)
                 && !SAFE_METHODS.contains(exchange.getRequest().getMethod().name())
+                && !isCsrfWhitelisted(exchange.getRequest().getPath().value())
                 && !hasValidCsrfToken(exchange)) {
             return writeError(exchange.getResponse(), HttpStatus.FORBIDDEN, "CSRF 令牌无效或已过期");
         }
@@ -78,16 +79,21 @@ public class ReactiveTokenValidationFilter implements WebFilter {
     }
 
     private boolean isExcluded(String path) {
-        List<String> excludePaths = properties.getExcludePaths();
+        List<String> excludePaths = properties.getAuth().getWhitelist();
         return excludePaths != null && excludePaths.stream().anyMatch(pattern -> antPathMatcher.match(pattern, path));
     }
 
     private boolean hasValidCsrfToken(ServerWebExchange exchange) {
-        String cookieToken = cookieValue(exchange, properties.getCsrfCookieName());
-        String headerToken = exchange.getRequest().getHeaders().getFirst(properties.getCsrfHeaderName());
+        String cookieToken = cookieValue(exchange, properties.getCsrf().getCookieName());
+        String headerToken = exchange.getRequest().getHeaders().getFirst(properties.getCsrf().getHeaderName());
         return cookieToken != null && headerToken != null
                 && MessageDigest.isEqual(cookieToken.getBytes(StandardCharsets.UTF_8), headerToken.getBytes(StandardCharsets.UTF_8))
                 && csrfTokenService.isValid(headerToken);
+    }
+
+    private boolean isCsrfWhitelisted(String path) {
+        List<String> whitelist = properties.getCsrf().getWhitelist();
+        return whitelist != null && whitelist.stream().anyMatch(pattern -> antPathMatcher.match(pattern, path));
     }
 
     private String cookieValue(ServerWebExchange exchange, String name) {

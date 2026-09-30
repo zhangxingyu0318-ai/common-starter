@@ -26,14 +26,15 @@ public class BearerTokenAuthenticationFilter extends AbstractServletAuthenticati
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return super.shouldNotFilter(request) || !tokenResolver.hasBearerToken(request.getHeader(properties.getHeaderName()));
+        return super.shouldNotFilter(request) || !tokenResolver.hasBearerToken(request.getHeader(properties.getAuth().getHeaderName()));
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        authenticate(tokenResolver.resolveBearerToken(request.getHeader(properties.getHeaderName())), request, response, filterChain);
+        authenticate(tokenResolver.resolveBearerToken(request.getHeader(properties.getAuth().getHeaderName())), request, response, filterChain);
     }
 }
+
 
 

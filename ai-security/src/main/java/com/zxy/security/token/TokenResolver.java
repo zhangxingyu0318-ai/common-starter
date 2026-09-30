@@ -17,8 +17,8 @@ public class TokenResolver {
 
     public boolean hasBearerToken(String headerValue) {
         return StringUtils.hasText(headerValue)
-                && headerValue.regionMatches(true, 0, properties.getTokenPrefix() + " ", 0,
-                properties.getTokenPrefix().length() + 1)
+                && headerValue.regionMatches(true, 0, properties.getAuth().getTokenPrefix() + " ", 0,
+                properties.getAuth().getTokenPrefix().length() + 1)
                 && StringUtils.hasText(resolveBearerToken(headerValue));
     }
 
@@ -26,7 +26,7 @@ public class TokenResolver {
         if (!StringUtils.hasText(headerValue)) {
             return null;
         }
-        String prefix = properties.getTokenPrefix() + " ";
+        String prefix = properties.getAuth().getTokenPrefix() + " ";
         return headerValue.regionMatches(true, 0, prefix, 0, prefix.length())
                 ? headerValue.substring(prefix.length()).trim() : null;
     }

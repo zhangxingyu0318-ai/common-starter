@@ -64,7 +64,7 @@ public class AuthController {
         if (browserRequest && !hasValidCsrfToken(servletRequest)) {
             throw new BusinessException("403", "CSRF 令牌无效或已过期");
         }
-        String refreshToken = browserRequest ? cookieService.readCookie(servletRequest, properties.getRefreshTokenCookieName())
+        String refreshToken = browserRequest ? cookieService.readCookie(servletRequest, properties.getCookie().getRefreshTokenName())
                 : request == null ? null : request.refreshToken();
         TokenResponse response = authService.refresh(refreshToken);
         if (browserRequest) {
@@ -84,10 +84,10 @@ public class AuthController {
             accessToken = request.accessToken();
         }
         if (!StringUtils.hasText(accessToken)) {
-            accessToken = cookieService.readCookie(servletRequest, properties.getAccessTokenCookieName());
+            accessToken = cookieService.readCookie(servletRequest, properties.getCookie().getAccessTokenName());
         }
         if (!StringUtils.hasText(refreshToken)) {
-            refreshToken = cookieService.readCookie(servletRequest, properties.getRefreshTokenCookieName());
+            refreshToken = cookieService.readCookie(servletRequest, properties.getCookie().getRefreshTokenName());
         }
         authService.logout(accessToken, refreshToken);
         cookieService.clearLoginCookies(servletResponse);
@@ -105,7 +105,7 @@ public class AuthController {
                                                 @RequestHeader(value = AUTHORIZATION, required = false) String authorization) {
         String token = extractToken(authorization);
         if (!StringUtils.hasText(token)) {
-            token = cookieService.readCookie(request, properties.getAccessTokenCookieName());
+            token = cookieService.readCookie(request, properties.getCookie().getAccessTokenName());
         }
         return Result.success(authService.currentUser(token), "查询成功", "Current user success");
     }
@@ -119,14 +119,14 @@ public class AuthController {
     }
 
     private boolean isBrowserRequest(HttpServletRequest request) {
-        return properties.getBrowserClientType().equalsIgnoreCase(request.getHeader(properties.getClientTypeHeader()))
-                || StringUtils.hasText(cookieService.readCookie(request, properties.getAccessTokenCookieName()))
-                || StringUtils.hasText(cookieService.readCookie(request, properties.getRefreshTokenCookieName()));
+        return properties.getAuth().getBrowserClientType().equalsIgnoreCase(request.getHeader(properties.getAuth().getClientTypeHeader()))
+                || StringUtils.hasText(cookieService.readCookie(request, properties.getCookie().getAccessTokenName()))
+                || StringUtils.hasText(cookieService.readCookie(request, properties.getCookie().getRefreshTokenName()));
     }
 
     private boolean hasValidCsrfToken(HttpServletRequest request) {
-        String cookieToken = cookieService.readCookie(request, properties.getCsrfCookieName());
-        String headerToken = request.getHeader(properties.getCsrfHeaderName());
+        String cookieToken = cookieService.readCookie(request, properties.getCsrf().getCookieName());
+        String headerToken = request.getHeader(properties.getCsrf().getHeaderName());
         return StringUtils.hasText(cookieToken) && StringUtils.hasText(headerToken)
                 && MessageDigest.isEqual(cookieToken.getBytes(StandardCharsets.UTF_8), headerToken.getBytes(StandardCharsets.UTF_8))
                 && csrfTokenService.isValid(headerToken);

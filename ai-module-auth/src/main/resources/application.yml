@@ -22,20 +22,43 @@ management:
 
 zxy:
   security:
-    enabled: true
-    secret: change-this-demo-secret-to-a-long-32-byte-minimum-key
-    issuer: common-starter
-    access-token-ttl: 30m
-    refresh-token-ttl: 7d
-    csrf-token-ttl: 2h
-    cookie-secure: false # 生产 HTTPS 必须设为 true
-    cookie-same-site: Lax
-    allowed-origins:
-      - http://localhost:3000
-      - http://localhost:5173
-    exclude-paths:
-      - /actuator/**
-      - /api/auth/login
-      - /api/auth/refresh
-      - /error
+    auth:
+      enabled: true
+      secret: change-this-demo-secret-to-a-long-32-byte-minimum-key
+      issuer: common-starter
+      access-token-ttl: 30m
+      refresh-token-ttl: 7d
+      header-name: Authorization
+      token-prefix: Bearer
+      blacklist-prefix: "auth:blacklist:"
+      client-type-header: X-Auth-Client
+      browser-client-type: browser
+      whitelist: [/actuator/**, /api/auth/login, /api/auth/refresh, /error]
+    cookie:
+      access-token-name: AI_ACCESS_TOKEN
+      refresh-token-name: AI_REFRESH_TOKEN
+      path: /
+      same-site: Lax
+      secure: false # 生产 HTTPS 必须设为 true
+    csrf:
+      cookie-name: XSRF-TOKEN
+      header-name: X-CSRF-TOKEN
+      # secret: ${AI_CSRF_HMAC_SECRET:} # 未配置时回退为 auth.secret；生产建议通过环境变量单独提供。
+      token-ttl: 2h
+      # 仅允许无需 CSRF 校验的浏览器端路径；不会跳过 JWT 鉴权。
+      whitelist: []
+    cors:
+      allowed-origins:
+        - http://localhost:3000
+        - http://localhost:5173
+      allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+      allowed-headers: [Authorization, Content-Type, X-CSRF-TOKEN, X-Auth-Client]
+      path-whitelist:
+        - /**
+      allow-credentials: true
+    identity-headers:
+      user-id: X-User-Id
+      username: X-Username
+      display-name: X-Display-Name
+      roles: X-User-Roles
 

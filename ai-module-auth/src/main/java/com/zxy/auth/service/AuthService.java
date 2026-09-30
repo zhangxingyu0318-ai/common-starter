@@ -100,7 +100,7 @@ public class AuthService {
                 accessToken,
                 refreshToken,
                 "Bearer",
-                properties.getAccessTokenTtl().toSeconds(),
+                properties.getAuth().getAccessTokenTtl().toSeconds(),
                 user.userId(),
                 user.username(),
                 user.displayName(),
@@ -112,7 +112,7 @@ public class AuthService {
         if (!StringUtils.hasText(token)) {
             return false;
         }
-        Boolean exists = redisTemplate.hasKey(properties.getBlacklistPrefix() + token);
+        Boolean exists = redisTemplate.hasKey(properties.getAuth().getBlacklistPrefix() + token);
         return Boolean.TRUE.equals(exists);
     }
 
@@ -126,7 +126,7 @@ public class AuthService {
             if (ttl.isNegative() || ttl.isZero()) {
                 return;
             }
-            redisTemplate.opsForValue().set(properties.getBlacklistPrefix() + token, "1", ttl);
+            redisTemplate.opsForValue().set(properties.getAuth().getBlacklistPrefix() + token, "1", ttl);
         } catch (RuntimeException ignored) {
             // 忽略非法或已过期令牌的黑名单写入
         }

@@ -29,15 +29,24 @@ management:
 
 zxy:
   security:
-    enabled: true
-    secret: change-this-demo-secret-to-a-long-32-byte-minimum-key
-    issuer: common-starter
-    access-token-ttl: 30m
-    refresh-token-ttl: 7d
-    exclude-paths:
-      - /actuator/**
-      - /api/auth/login
-      - /api/auth/refresh
-      - /api/auth/validate
-      - /error
+    auth:
+      enabled: true
+      secret: change-this-demo-secret-to-a-long-32-byte-minimum-key
+      issuer: common-starter
+      access-token-ttl: 30m
+      refresh-token-ttl: 7d
+      header-name: Authorization
+      token-prefix: Bearer
+      blacklist-prefix: "auth:blacklist:"
+      whitelist: [/actuator/**, /api/auth/login, /api/auth/refresh, /api/auth/validate, /error]
+    cookie:
+      access-token-name: AI_ACCESS_TOKEN
+      refresh-token-name: AI_REFRESH_TOKEN
+      path: /
+      same-site: Lax
+      secure: false
+    csrf:
+      # secret: ${AI_CSRF_HMAC_SECRET:} # 必须与 ai-module-auth 一致；未配置时使用 auth.secret。
+      token-ttl: 2h
+      whitelist: []
 

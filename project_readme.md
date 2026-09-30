@@ -201,9 +201,18 @@ The CSRF value is stateless: `base64url(uuid.timestamp).base64url(hmac)`. The fi
 
 For browser refresh, CSRF is also verified in the auth service because the route is intentionally public to the gateway. Logout blacklists valid tokens in Redis and clears browser cookies. Mobile login/refresh still returns Bearer tokens in the JSON body; browser JWT values are omitted from that body.
 
-## 6.2 Security configuration requirements
+## 6.2 Platform security configuration requirements
 
-All services and the gateway must use the same JWT `secret`, issuer, and Redis blacklist namespace. If `csrf-secret` is configured separately, it must also have the same value wherever CSRF is validated.
+All services and the gateway must use the same JWT `secret`, issuer, and Redis blacklist namespace. If `zxy.security.csrf.secret` is configured separately, it must also have the same value wherever CSRF is validated.
+
+The platform configuration is grouped by responsibility: `zxy.security.auth` (JWT, Bearer, blacklist and auth whitelist), `zxy.security.cookie`, `zxy.security.csrf`, `zxy.security.cors`, and `zxy.security.identity-headers`.
+
+CSRF and CORS are grouped under `zxy.security.csrf` and `zxy.security.cors` respectively:
+
+- `auth.whitelist` bypasses token enforcement only for explicitly matched public routes.
+- `csrf.whitelist` only skips CSRF validation for explicitly matched unsafe browser paths; authentication and JWT/blacklist validation still run.
+- `cors.allowed-origins`, `cors.allowed-methods`, `cors.allowed-headers`, and `cors.path-whitelist` form the platform CORS allowlist. CORS is registered only for those configured paths.
+- `cors.allow-credentials: true` rejects `*` in `allowed-origins` during startup.
 
 Set `zxy.security.cookie-secure: true` in every HTTPS production environment. For a cross-site frontend, use `cookie-same-site: None` **and** `cookie-secure: true`, and configure exact frontend hosts in `allowed-origins`; never use `*` with credentialed CORS.
 

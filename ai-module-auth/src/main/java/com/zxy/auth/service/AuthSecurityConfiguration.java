@@ -18,6 +18,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @Configuration
@@ -45,14 +46,21 @@ public class AuthSecurityConfiguration {
 
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource(AuthTokenProperties properties) {
+		AuthTokenProperties.Cors cors = properties.getCors();
+		if (cors.isAllowCredentials() && cors.getAllowedOrigins().contains("*")) {
+			throw new IllegalStateException("启用凭据 CORS 时不允许使用通配符 Origin");
+		}
+		LinkedHashSet<String> allowedHeaders = new LinkedHashSet<>(cors.getAllowedHeaders());
+		allowedHeaders.add(properties.getCsrf().getHeaderName());
+		allowedHeaders.add(properties.getAuth().getClientTypeHeader());
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(properties.getAllowedOrigins());
-		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", properties.getCsrfHeaderName(), properties.getClientTypeHeader()));
-		configuration.setExposedHeaders(List.of("Set-Cookie"));
-		configuration.setAllowCredentials(true);
+		configuration.setAllowedOrigins(cors.getAllowedOrigins());
+		configuration.setAllowedMethods(cors.getAllowedMethods());
+		configuration.setAllowedHeaders(List.copyOf(allowedHeaders));
+		configuration.setExposedHeaders(cors.getExposedHeaders());
+		configuration.setAllowCredentials(cors.isAllowCredentials());
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", configuration);
+		cors.getPathWhitelist().forEach(path -> source.registerCorsConfiguration(path, configuration));
 		return source;
 	}
 

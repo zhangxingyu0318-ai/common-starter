@@ -44,7 +44,7 @@ public class AiSecurityAutoConfiguration {
     @ConditionalOnMissingBean(TokenBlacklistChecker.class)
     public TokenBlacklistChecker redisTokenBlacklistChecker(StringRedisTemplate redisTemplate,
                                                            AuthTokenProperties properties) {
-        return new RedisTokenBlacklistChecker(redisTemplate, properties.getBlacklistPrefix());
+        return new RedisTokenBlacklistChecker(redisTemplate, properties.getAuth().getBlacklistPrefix());
     }
 
     @Bean
