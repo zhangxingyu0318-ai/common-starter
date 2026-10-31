@@ -7,6 +7,11 @@ import com.zxy.security.model.SecurityUser;
 import com.zxy.security.model.TokenValidationResult;
 import org.springframework.util.StringUtils;
 
+/**
+ * 编排 JWT 解析与撤销黑名单检查的应用服务。
+ * <p>Servlet/WebFlux 过滤器调用它校验访问令牌并获得 {@link com.zxy.security.model.SecurityUser}；认证中心亦可复用该规则。</p>
+ * <p>同类方案包括 Spring Security 的 {@code AuthenticationProvider}、资源服务器的 {@code JwtAuthenticationProvider}。</p>
+ */
 public class TokenValidationService {
 
     private final JwtTokenService jwtTokenService;
@@ -32,4 +37,3 @@ public class TokenValidationService {
         }
     }
 }
-

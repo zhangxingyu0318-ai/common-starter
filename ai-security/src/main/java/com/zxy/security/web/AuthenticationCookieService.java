@@ -9,7 +9,11 @@ import org.springframework.http.ResponseCookie;
 
 import java.util.Arrays;
 
-/** Issues and clears browser authentication cookies without server-side session state. */
+/**
+ * 集中创建与清理浏览器认证、刷新令牌及 CSRF Cookie 的服务。
+ * <p>由 {@code ai-module-auth} 的登录、刷新和登出接口调用，Cookie 属性取自 {@link AuthTokenProperties.Cookie} 与 CSRF 配置。</p>
+ * <p>同类方案包括 Spring 的 {@code ResponseCookie}、Spring Session 的 Cookie 编码器和直接操作 Servlet {@code Cookie}。</p>
+ */
 public class AuthenticationCookieService {
 
     private final AuthTokenProperties properties;
@@ -53,6 +57,3 @@ public class AuthenticationCookieService {
                 .sameSite(properties.getCookie().getSameSite()).maxAge(java.time.Duration.ZERO).build().toString());
     }
 }
-
-
-

@@ -10,7 +10,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/** Authenticates mobile/API requests carrying an explicit Bearer token. */
+/**
+ * 处理非浏览器 Bearer Authorization 请求的 Servlet 认证过滤器。
+ * <p>由自动配置以高优先级注册；从配置指定请求头提取 access token，校验后建立 Spring Security 上下文并透传用户身份头。</p>
+ * <p>同类过滤器包括 {@code BearerTokenAuthenticationFilter}（Spring Security Resource Server）和自定义 {@code OncePerRequestFilter}。</p>
+ */
 public class BearerTokenAuthenticationFilter extends AbstractServletAuthenticationFilter {
 
     private final TokenResolver tokenResolver;
@@ -35,6 +39,3 @@ public class BearerTokenAuthenticationFilter extends AbstractServletAuthenticati
         authenticate(tokenResolver.resolveBearerToken(request.getHeader(properties.getAuth().getHeaderName())), request, response, filterChain);
     }
 }
-
-
-

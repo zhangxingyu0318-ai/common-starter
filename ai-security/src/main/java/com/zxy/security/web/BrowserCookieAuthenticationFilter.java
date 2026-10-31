@@ -19,7 +19,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-/** Authenticates browser requests with an HttpOnly JWT cookie and HMAC-protected CSRF token. */
+/**
+ * 处理浏览器认证 Cookie 的 Servlet 过滤器，并在非安全方法执行 CSRF 校验。
+ * <p>由自动配置在 Bearer 过滤器后注册；仅对配置标识的浏览器客户端读取 access-token Cookie，成功后建立认证上下文。</p>
+ * <p>同类组件包括 Spring Security 的 {@code CookieCsrfTokenRepository}、{@code CsrfFilter} 及 session Cookie 认证过滤器。</p>
+ */
 public class BrowserCookieAuthenticationFilter extends AbstractServletAuthenticationFilter {
 
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
@@ -88,8 +92,3 @@ public class BrowserCookieAuthenticationFilter extends AbstractServletAuthentica
                 .orElse(null);
     }
 }
-
-
-
-
-

@@ -20,6 +20,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * Servlet 认证过滤器的公共基类，集中处理白名单、令牌校验、错误响应、认证上下文和身份请求头写入。
+ * <p>由 {@link BearerTokenAuthenticationFilter} 与 {@link BrowserCookieAuthenticationFilter} 继承，且由自动配置注册到业务服务和认证中心。</p>
+ * <p>同类基类包括 Spring 的 {@code OncePerRequestFilter}、Spring Security 的 {@code AbstractAuthenticationProcessingFilter}。</p>
+ */
 abstract class AbstractServletAuthenticationFilter extends OncePerRequestFilter {
 
     protected final AuthTokenProperties properties;
@@ -76,5 +81,3 @@ abstract class AbstractServletAuthenticationFilter extends OncePerRequestFilter 
         objectMapper.writeValue(response.getWriter(), Result.fail(String.valueOf(status), normalized, normalized));
     }
 }
-
-

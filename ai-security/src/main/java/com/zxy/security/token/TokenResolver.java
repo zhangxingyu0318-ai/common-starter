@@ -3,6 +3,11 @@ package com.zxy.security.token;
 import com.zxy.security.config.AuthTokenProperties;
 import org.springframework.util.StringUtils;
 
+/**
+ * 从 HTTP 请求头或 Cookie 中按平台配置提取原始访问令牌。
+ * <p>由 Servlet 和 WebFlux 认证过滤器调用，以统一 Bearer Header 与浏览器 Cookie 两种传输方式的解析规则。</p>
+ * <p>同类组件包括 Spring Security 的 {@code BearerTokenResolver}、{@code DefaultBearerTokenResolver}。</p>
+ */
 public class TokenResolver {
 
     private final AuthTokenProperties properties;
@@ -31,4 +36,3 @@ public class TokenResolver {
                 ? headerValue.substring(prefix.length()).trim() : null;
     }
 }
-

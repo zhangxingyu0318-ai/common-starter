@@ -18,6 +18,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * 直接对请求 Authorization 头执行访问令牌校验的 Servlet 过滤器。
+ * <p>适用于应用需要手动注册单一令牌过滤器的场景；当前自动配置默认注册更细分的
+ * {@link BearerTokenAuthenticationFilter} 与 {@link BrowserCookieAuthenticationFilter}。</p>
+ * <p>同类组件包括 {@link BearerTokenAuthenticationFilter}、Spring Security Resource Server 的 Bearer Token 过滤器。</p>
+ */
 public class ServletTokenValidationFilter extends OncePerRequestFilter {
 
     private final AuthTokenProperties properties;

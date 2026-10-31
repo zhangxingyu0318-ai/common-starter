@@ -15,6 +15,12 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 基于 JJWT 和 HMAC 对称密钥的默认 JWT 服务实现。
+ * <p>由自动配置作为 {@link JwtTokenService} 默认 Bean 提供给认证中心签发令牌，亦由网关和业务服务校验签名、签发方、
+ * 有效期及 access/refresh 令牌类型。</p>
+ * <p>同类实现包括基于 RSA/ECDSA 的 {@code NimbusJwtEncoder}/{@code NimbusJwtDecoder}，或对接 OAuth2 授权服务器的令牌服务。</p>
+ */
 public class DefaultJwtTokenService implements JwtTokenService {
 
     private static final String CLAIM_USERNAME = "username";

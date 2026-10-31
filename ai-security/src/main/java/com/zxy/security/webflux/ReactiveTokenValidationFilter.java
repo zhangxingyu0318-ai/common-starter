@@ -26,6 +26,12 @@ import java.security.MessageDigest;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * 面向 WebFlux 的非阻塞访问令牌认证过滤器。
+ * <p>由自动配置在网关或其他响应式应用中注册，完成 Bearer/Cookie 令牌读取、CSRF 校验、身份头透传和未授权响应；
+ * 核心 JWT 与黑名单校验逻辑复用 {@link com.zxy.security.validation.TokenValidationService}。</p>
+ * <p>同类组件包括 Spring WebFlux 的 {@code WebFilter}、Spring Security 的 {@code AuthenticationWebFilter}。</p>
+ */
 public class ReactiveTokenValidationFilter implements WebFilter {
 
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
@@ -117,5 +123,3 @@ public class ReactiveTokenValidationFilter implements WebFilter {
         }
     }
 }
-
-

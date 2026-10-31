@@ -28,6 +28,13 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.WebFilter;
 
+/**
+ * ai-security 的 Spring Boot 自动配置入口。
+ * <p>在应用引入本模块后按 Servlet 或 WebFlux 运行环境创建 JWT、黑名单、CSRF、令牌解析和校验组件，
+ * 并注册相应的认证过滤器；业务服务、认证中心和网关均由此获得默认实现。</p>
+ * <p>同类机制包括 Spring Boot 的 {@code @AutoConfiguration}、传统 {@code @Configuration}，以及 Spring Security 的
+ * {@code SecurityFilterChain} / {@code SecurityWebFilterChain} 配置。</p>
+ */
 @AutoConfiguration
 @EnableConfigurationProperties(AuthTokenProperties.class)
 public class AiSecurityAutoConfiguration {
@@ -159,4 +166,3 @@ public class AiSecurityAutoConfiguration {
         );
     }
 }
-

@@ -12,6 +12,12 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * 将已认证用户信息写入当前请求头，供网关后的业务服务消费。
+ * <p>由 Servlet 认证过滤器和 {@link com.zxy.security.webflux.ReactiveTokenValidationFilter} 在令牌校验成功后调用；
+ * 请求头名称由 {@link AuthTokenProperties.IdentityHeaders} 统一配置。</p>
+ * <p>同类方案包括 Spring Security {@code SecurityContextHolder}、OAuth2 Token Relay，或签名的内部身份令牌。</p>
+ */
 public class SecurityUserHeaderWriter {
 
     private final AuthTokenProperties properties;
@@ -42,6 +48,11 @@ public class SecurityUserHeaderWriter {
         return StringUtils.hasText(value) ? value : "";
     }
 
+    /**
+     * 可附加身份请求头的 Servlet 请求包装器。
+     * <p>仅由外层 {@link SecurityUserHeaderWriter} 在 Servlet 过滤器链内创建，避免修改原始容器请求对象。</p>
+     * <p>同类类型包括 {@link HttpServletRequestWrapper} 及 Spring 的各类 request wrapper。</p>
+     */
     private static final class MutableHeaderHttpServletRequest extends HttpServletRequestWrapper {
 
         private final Map<String, String> headers;

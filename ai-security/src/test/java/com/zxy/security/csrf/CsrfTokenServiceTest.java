@@ -8,6 +8,11 @@ import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * {@link CsrfTokenService} 的单元测试。
+ * <p>在 ai-security 构建时验证本平台 CSRF 令牌生成、签名校验和有效期规则，覆盖浏览器 Cookie 认证链路的基础能力。</p>
+ * <p>同类测试包括 Spring Security {@code CsrfTokenRepository} 与 {@code CsrfFilter} 的 Web 层集成测试。</p>
+ */
 class CsrfTokenServiceTest {
 
     @Test
@@ -27,6 +32,3 @@ class CsrfTokenServiceTest {
         assertFalse(service.isValid(token));
     }
 }
-
-
-

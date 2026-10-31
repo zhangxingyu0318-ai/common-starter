@@ -12,7 +12,10 @@ import java.util.Base64;
 import java.util.UUID;
 
 /**
- * Stateless CSRF token format: base64url(uuid.timestamp).base64url(HMAC-SHA-256(payload)).
+ * 提供浏览器 Cookie 认证所需的 CSRF 令牌生成与校验。
+ * <p>由 {@link com.zxy.security.web.AuthenticationCookieService} 写入 CSRF Cookie，并由浏览器 Servlet 过滤器和
+ * WebFlux 过滤器在状态变更请求中验证请求头携带的令牌。</p>
+ * <p>同类组件包括 Spring Security 的 {@code CsrfTokenRepository}、{@code CookieCsrfTokenRepository} 与 {@code CsrfFilter}。</p>
  */
 public class CsrfTokenService {
 
@@ -80,6 +83,7 @@ public class CsrfTokenService {
         return new String(Base64.getUrlDecoder().decode(value), StandardCharsets.UTF_8);
     }
 }
+
 
 
 
